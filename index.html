@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer App</title>
+  <!-- Google Font pour un look moderne -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #ff9800;
+      --secondary-color: #b36b00;
+      --background-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      --text-color: #ffffff;
+      --accent-color: #ffd700;
+      --border-radius: 10px;
+      --font-family: 'Poppins', sans-serif;
+      --light-bg: #f0f0f0;
+      --light-text: #333;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: var(--font-family);
+      background: var(--background-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.5s, filter 0.3s, color 0.3s;
+    }
+    body.light-mode {
+      background: var(--light-bg);
+      color: var(--light-text);
+    }
+    header {
+      background: rgba(0, 0, 0, 0.2);
+      width: 100%;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      font-size: 1.5em;
+    }
+    nav {
+      display: flex;
+      gap: 15px;
+    }
+    nav button {
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 1em;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: var(--border-radius);
+      transition: background 0.3s;
+    }
+    nav button:hover,
+    nav button.active {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    main {
+      flex: 1;
+      padding: 80px 20px 20px 20px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    section.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Dashboard */
+    .timer-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .date-display {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 12px;
+      border-radius: var(--border-radius);
+      display: inline-block;
+    }
+    .timer {
+      font-size: 4em;
+      font-weight: 600;
+      padding: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .medals {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .medal {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      position: relative;
+    }
+    .medal.bronze { background: #cd7f32; }
+    .medal.silver { background: #c0c0c0; }
+    .medal.gold { background: #ffd700; }
+    .medal.platinum { background: #e5e4e2; }
+    .medal.diamond { background: #b9f2ff; }
+    .medal sup {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      font-size: 0.6em;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn {
+      background: rgba(0, 0, 0, 0.3);
+      border: none;
+      color: var(--text-color);
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      margin: 5px;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .small-btn {
+      font-size: 0.9em;
+      padding: 5px 10px;
+      margin: 3px;
+    }
+    /* Progress */
+    .progress-container {
+      background: rgba(255,255,255,0.2);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      margin: 10px auto;
+      max-width: 600px;
+    }
+    .progress-bar {
+      height: 20px;
+      width: 0%;
+      background: var(--accent-color);
+      transition: width 0.5s;
+    }
+    /* Journal */
+    .journal-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .journal-entry {
+      width: 100%;
+      min-height: 200px;
+      padding: 10px;
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-color);
+      font-size: 1em;
+    }
+    /* Mood Tracker */
+    .mood-container {
+      text-align: center;
+    }
+    .mood-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .mood-btn {
+      background: rgba(0, 0, 0, 0.3);
+      border: none;
+      font-size: 2em;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .mood-btn:hover {
+      transform: scale(1.1);
+    }
+    .mood-log {
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .mood-log p {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px;
+      border-radius: var(--border-radius);
+      margin-bottom: 5px;
+    }
+    /* Settings */
+    .settings-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .setting-group label {
+      font-weight: 600;
+    }
+    .setting-group input[type="color"],
+    .setting-group input[type="range"],
+    .setting-group input[type="datetime-local"],
+    .setting-group input[type="number"] {
+      padding: 5px;
+      border: none;
+      border-radius: var(--border-radius);
+    }
+    .setting-group select {
+      padding: 5px;
+      border-radius: var(--border-radius);
+      border: none;
+    }
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      color: #333;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      max-width: 500px;
+      width: 90%;
+    }
+  </style>
+</head>
+<body>
+  <!-- En-tête & Navigation -->
+  <header>
+    <h1>Timer App</h1>
+    <nav>
+      <button data-section="dashboard" class="active">Dashboard</button>
+      <button data-section="journal">Journal</button>
+      <button data-section="mood">Mood</button>
+      <button data-section="settings">Settings</button>
+    </nav>
+  </header>
+
+  <!-- Contenu principal -->
+  <main>
+    <!-- Dashboard : Timer, Médailles, Confettis, Progress et Boutons -->
+    <section id="dashboard" class="active">
+      <div class="timer-container">
+        <div class="date-display" id="startDateDisplay"></div>
+        <div class="timer" id="timerDisplay">
+          <span id="days">00</span>:<span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+        </div>
+        <div>
+          <button class="btn small-btn" id="confettiBtn">Celebrate!</button>
+          <button class="btn small-btn" id="resetTimerBtn">Reset Timer</button>
+          <button class="btn small-btn" id="copyTimerBtn">Copy Timer</button>
+          <button class="btn small-btn" id="shareTimerBtn">Share Timer</button>
+        </div>
+      </div>
+      <!-- Médailles -->
+      <div class="medals" id="medalsContainer"></div>
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar" id="cycleProgressBar"></div>
+      </div>
+    </section>
+
+    <!-- Journal -->
+    <section id="journal">
+      <h2>Journal de Bord</h2>
+      <div class="journal-container">
+        <textarea class="journal-entry" id="journalEntry" placeholder="Écrivez votre note du jour..."></textarea>
+        <button class="btn" id="saveJournalBtn">Enregistrer la note</button>
+        <button class="btn small-btn" id="toggleJournalHistoryBtn">Afficher/Masquer Historique</button>
+        <div id="journalHistory"></div>
+      </div>
+    </section>
+
+    <!-- Mood Tracker -->
+    <section id="mood">
+      <h2>Suivi de l’Humeur</h2>
+      <div class="mood-container">
+        <p>Comment te sens-tu aujourd'hui ?</p>
+        <div class="mood-buttons">
+          <button class="mood-btn" data-mood="😊">😊</button>
+          <button class="mood-btn" data-mood="😐">😐</button>
+          <button class="mood-btn" data-mood="😔">😔</button>
+          <button class="mood-btn" data-mood="😡">😡</button>
+        </div>
+        <button class="btn small-btn" id="clearMoodLogBtn">Effacer l’historique d’humeur</button>
+        <div class="mood-log" id="moodLog"></div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings">
+      <h2>Paramètres</h2>
+      <div class="settings-container">
+        <!-- Date de départ -->
+        <div class="setting-group">
+          <label for="startDateInput">Changer la date de départ :</label>
+          <input type="datetime-local" id="startDateInput">
+          <button class="btn" id="updateStartDateBtn">Mettre à jour la date</button>
+        </div>
+        <!-- Couleurs & Luminosité -->
+        <div class="setting-group">
+          <label for="bgColorInput">Couleur principale :</label>
+          <input type="color" id="bgColorInput" value="#ff9800">
+        </div>
+        <div class="setting-group">
+          <label for="bgColorInput2">Couleur secondaire :</label>
+          <input type="color" id="bgColorInput2" value="#b36b00">
+        </div>
+        <div class="setting-group">
+          <label for="brightnessInput">Luminosité :</label>
+          <input type="range" id="brightnessInput" min="0.5" max="1.5" step="0.01" value="1">
+        </div>
+        <!-- Fonctions Supplémentaires -->
+        <div class="setting-group">
+          <label for="darkModeToggle">Mode Dark/Light :</label>
+          <input type="checkbox" id="darkModeToggle"> (Cochez pour Light Mode)
+        </div>
+        <div class="setting-group">
+          <button class="btn" id="fullscreenBtn">Toggle Fullscreen</button>
+        </div>
+        <div class="setting-group">
+          <button class="btn" id="randomBgBtn">Background Aléatoire</button>
+        </div>
+        <div class="setting-group">
+          <label for="muteSoundToggle">Désactiver Son :</label>
+          <input type="checkbox" id="muteSoundToggle">
+        </div>
+        <!-- Calculateur de Différence -->
+        <div class="setting-group">
+          <label>Calculateur de Différence de Dates :</label>
+          <input type="datetime-local" id="dateDiff1">
+          <input type="datetime-local" id="dateDiff2">
+          <button class="btn small-btn" id="calcDateDiffBtn">Calculer</button>
+          <div id="dateDiffResult"></div>
+        </div>
+        <!-- Rappel -->
+        <div class="setting-group">
+          <label for="reminderMinutes">Définir un rappel (minutes) :</label>
+          <input type="number" id="reminderMinutes" placeholder="minutes">
+          <button class="btn small-btn" id="setReminderBtn">Set Reminder</button>
+        </div>
+        <!-- Sélecteur de Langue -->
+        <div class="setting-group">
+          <label for="languageSelect">Changer de Langue :</label>
+          <select id="languageSelect">
+            <option value="fr" selected>Français</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <!-- Réinitialiser -->
+        <div class="setting-group">
+          <button class="btn" id="resetSettingsBtn">Réinitialiser les réglages</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal d'information -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <p id="modalMessage"></p>
+      <button class="btn" id="closeModalBtn">Fermer</button>
+    </div>
+  </div>
+
+  <!-- Audio pour notifications -->
+  <audio id="confettiSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+  <script>
+    /* ----- Variables Globales ----- */
+    let currentLanguage = 'fr'; // Par défaut Français
+    // Récupère la date de départ depuis le localStorage ou utilise une valeur par défaut
+    let startDate = localStorage.getItem('startDate') 
+          ? new Date(localStorage.getItem('startDate')) 
+          : new Date('2025-02-05T15:00:00');
+    // Si startDate est invalide, on le réinitialise
+    if(isNaN(startDate.getTime())) { 
+      startDate = new Date('2025-02-05T15:00:00'); 
+    }
+    let reminderTimeout = null;
+    const muteSoundToggle = document.getElementById('muteSoundToggle');
+
+    /* ----- Timer & Affichage ----- */
+    const startDateDisplay = document.getElementById('startDateDisplay');
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    const medalsContainer = document.getElementById('medalsContainer');
+    const cycleProgressBar = document.getElementById('cycleProgressBar');
+
+    function updateStartDateDisplay() {
+      const options = { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+      startDateDisplay.textContent = currentLanguage === 'fr' 
+        ? `Départ : ${startDate.toLocaleDateString('fr-FR', options)}` 
+        : `Start Date: ${startDate.toLocaleDateString('en-US', options)}`;
+    }
+    updateStartDateDisplay();
+
+    function updateTimer() {
+      const now = new Date();
+      let diff = now - startDate;
+      // Si le diff est négatif, on l'affiche à 0
+      if(diff < 0) diff = 0;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      daysEl.textContent = String(days).padStart(2, '0');
+      hoursEl.textContent = String(hours).padStart(2, '0');
+      minutesEl.textContent = String(minutes).padStart(2, '0');
+      secondsEl.textContent = String(seconds).padStart(2, '0');
+      updateMedals(days);
+      updateCycleProgress(days);
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+    /* ----- Médailles & Progression ----- */
+    function updateMedals(days) {
+      medalsContainer.innerHTML = '';
+      const medals = [
+        { threshold: 10, class: 'bronze', icon: '🥉' },
+        { threshold: 20, class: 'silver', icon: '🥈' },
+        { threshold: 30, class: 'gold', icon: '🥇' },
+        { threshold: 40, class: 'platinum', icon: '🏆' },
+        { threshold: 50, class: 'diamond', icon: '💎' }
+      ];
+      let extraCycle = days >= 50 ? Math.floor((days - 50) / 30) : 0;
+      medals.forEach((medal, index) => {
+        if (days >= medal.threshold) {
+          let medalHTML = `<div class="medal ${medal.class}">${medal.icon}`;
+          if (extraCycle >= index + 1) {
+            const count = Math.floor((extraCycle - index - 1) / 5) + 1;
+            medalHTML += `<sup>${count}</sup>`;
+          }
+          medalHTML += `</div>`;
+          medalsContainer.innerHTML += medalHTML;
+        }
+      });
+    }
+
+    function updateCycleProgress(days) {
+      let progress = 0;
+      if(days < 50){
+        progress = (days / 50) * 100;
+      } else {
+        progress = (((days - 50) % 30) / 30) * 100;
+      }
+      cycleProgressBar.style.width = progress + '%';
+    }
+
+    /* ----- Navigation entre sections ----- */
+    const navButtons = document.querySelectorAll('nav button');
+    const sections = document.querySelectorAll('main section');
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        navButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const target = btn.getAttribute('data-section');
+        sections.forEach(sec => {
+          sec.classList.toggle('active', sec.id === target);
+        });
+      });
+    });
+
+    /* ----- Confettis & Audio ----- */
+    const confettiBtn = document.getElementById('confettiBtn');
+    confettiBtn.addEventListener('click', () => {
+      launchConfetti();
+      if(!muteSoundToggle.checked){
+        document.getElementById('confettiSound').play();
+      }
+    });
+    function launchConfetti() {
+      for (let i = 0; i < 150; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.top = '50%';
+        confetti.style.left = '50%';
+        confetti.style.width = '8px';
+        confetti.style.height = '8px';
+        confetti.style.backgroundColor = getRandomColor();
+        confetti.style.borderRadius = '50%';
+        confetti.style.opacity = 0;
+        confetti.style.zIndex = 100;
+        document.body.appendChild(confetti);
+        const randomAngle = Math.random() * 360;
+        const randomDistance = Math.random() * 300 + 50;
+        const randomDuration = Math.random() * 2 + 1;
+        confetti.style.transition = `transform ${randomDuration}s ease-out, opacity ${randomDuration}s ease-out`;
+        setTimeout(() => {
+          confetti.style.transform = `translate(${Math.cos(randomAngle) * randomDistance}px, ${Math.sin(randomAngle) * randomDistance}px)`;
+          confetti.style.opacity = 1;
+        }, 10);
+        setTimeout(() => {
+          confetti.remove();
+        }, randomDuration * 1000);
+      }
+    }
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    /* ----- Dashboard Boutons Additionnels ----- */
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    resetTimerBtn.addEventListener('click', () => {
+      startDate = new Date();
+      localStorage.setItem('startDate', startDate);
+      updateStartDateDisplay();
+      updateTimer();
+      showModal(currentLanguage === 'fr' ? "Timer réinitialisé !" : "Timer reset!");
+    });
+
+    const copyTimerBtn = document.getElementById('copyTimerBtn');
+    copyTimerBtn.addEventListener('click', () => {
+      const timerText = document.getElementById('timerDisplay').textContent;
+      navigator.clipboard.writeText(timerText);
+      showModal(currentLanguage === 'fr' ? "Timer copié dans le presse-papiers !" : "Timer copied to clipboard!");
+    });
+
+    const shareTimerBtn = document.getElementById('shareTimerBtn');
+    shareTimerBtn.addEventListener('click', () => {
+      const timerText = document.getElementById('timerDisplay').textContent;
+      const message = currentLanguage === 'fr'
+        ? `Regarde mon timer : ${timerText}`
+        : `Check out my timer: ${timerText}`;
+      navigator.clipboard.writeText(message);
+      showModal(currentLanguage === 'fr' ? "Message de partage copié !" : "Share message copied!");
+    });
+
+    /* ----- Journal ----- */
+    const journalEntry = document.getElementById('journalEntry');
+    const saveJournalBtn = document.getElementById('saveJournalBtn');
+    const journalHistory = document.getElementById('journalHistory');
+    const toggleJournalHistoryBtn = document.getElementById('toggleJournalHistoryBtn');
+    function loadJournal() {
+      const savedJournal = localStorage.getItem('journal');
+      if (savedJournal) {
+        journalHistory.innerHTML = savedJournal;
+      }
+    }
+    loadJournal();
+    saveJournalBtn.addEventListener('click', () => {
+      const today = new Date().toLocaleDateString(currentLanguage === 'fr' ? 'fr-FR' : 'en-US');
+      const note = journalEntry.value.trim();
+      if (note !== "") {
+        const entryHTML = `<p><strong>${today} :</strong> ${note}</p>`;
+        journalHistory.innerHTML = entryHTML + journalHistory.innerHTML;
+        journalEntry.value = "";
+        localStorage.setItem('journal', journalHistory.innerHTML);
+        showModal(currentLanguage === 'fr' ? "Note enregistrée !" : "Note saved!");
+      }
+    });
+    toggleJournalHistoryBtn.addEventListener('click', () => {
+      journalHistory.style.display = journalHistory.style.display === 'none' ? 'block' : 'none';
+    });
+
+    /* ----- Mood Tracker ----- */
+    const moodButtons = document.querySelectorAll('.mood-btn');
+    const moodLog = document.getElementById('moodLog');
+    moodButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mood = btn.getAttribute('data-mood');
+        const today = new Date().toLocaleDateString(currentLanguage === 'fr' ? 'fr-FR' : 'en-US');
+        const moodEntry = `<p><strong>${today} :</strong> ${mood}</p>`;
+        moodLog.innerHTML = moodEntry + moodLog.innerHTML;
+        localStorage.setItem('moodLog', moodLog.innerHTML);
+        showModal(currentLanguage === 'fr' ? "Humeur enregistrée !" : "Mood saved!");
+      });
+    });
+    function loadMoodLog() {
+      const savedMood = localStorage.getItem('moodLog');
+      if (savedMood) {
+        moodLog.innerHTML = savedMood;
+      }
+    }
+    loadMoodLog();
+    document.getElementById('clearMoodLogBtn').addEventListener('click', () => {
+      moodLog.innerHTML = "";
+      localStorage.removeItem('moodLog');
+      showModal(currentLanguage === 'fr' ? "Historique d’humeur effacé !" : "Mood log cleared!");
+    });
+
+    /* ----- Settings ----- */
+    const startDateInput = document.getElementById('startDateInput');
+    const updateStartDateBtn = document.getElementById('updateStartDateBtn');
+    const bgColorInput = document.getElementById('bgColorInput');
+    const bgColorInput2 = document.getElementById('bgColorInput2');
+    const brightnessInput = document.getElementById('brightnessInput');
+    const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const randomBgBtn = document.getElementById('randomBgBtn');
+    const dateDiff1 = document.getElementById('dateDiff1');
+    const dateDiff2 = document.getElementById('dateDiff2');
+    const calcDateDiffBtn = document.getElementById('calcDateDiffBtn');
+    const dateDiffResult = document.getElementById('dateDiffResult');
+    const reminderMinutes = document.getElementById('reminderMinutes');
+    const setReminderBtn = document.getElementById('setReminderBtn');
+    const languageSelect = document.getElementById('languageSelect');
+
+    startDateInput.value = startDate.toISOString().slice(0,16);
+    brightnessInput.value = 1;
+    updateStartDateBtn.addEventListener('click', () => {
+      const newDate = new Date(startDateInput.value);
+      if (!isNaN(newDate)) {
+        startDate = newDate;
+        localStorage.setItem('startDate', startDate);
+        updateStartDateDisplay();
+        updateTimer();
+        showModal(currentLanguage === 'fr' ? "Date de départ mise à jour !" : "Start date updated!");
+      } else {
+        showModal(currentLanguage === 'fr' ? "Veuillez entrer une date valide." : "Please enter a valid date.");
+      }
+    });
+    bgColorInput.addEventListener('input', updateBackground);
+    bgColorInput2.addEventListener('input', updateBackground);
+    brightnessInput.addEventListener('input', () => {
+      document.body.style.filter = `brightness(${brightnessInput.value})`;
+    });
+    resetSettingsBtn.addEventListener('click', () => {
+      localStorage.removeItem('startDate');
+      localStorage.removeItem('journal');
+      localStorage.removeItem('moodLog');
+      location.reload();
+    });
+    function updateBackground() {
+      const color1 = bgColorInput.value;
+      const color2 = bgColorInput2.value;
+      document.documentElement.style.setProperty('--primary-color', color1);
+      document.documentElement.style.setProperty('--secondary-color', color2);
+      document.documentElement.style.setProperty('--background-gradient', `linear-gradient(135deg, ${color1}, ${color2})`);
+      document.body.style.background = `var(--background-gradient)`;
+    }
+    darkModeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('light-mode', darkModeToggle.checked);
+    });
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    });
+    randomBgBtn.addEventListener('click', () => {
+      const randomColor1 = getRandomColor();
+      const randomColor2 = getRandomColor();
+      bgColorInput.value = randomColor1;
+      bgColorInput2.value = randomColor2;
+      updateBackground();
+    });
+    calcDateDiffBtn.addEventListener('click', () => {
+      const d1 = new Date(dateDiff1.value);
+      const d2 = new Date(dateDiff2.value);
+      if(!isNaN(d1) && !isNaN(d2)){
+        const diff = Math.abs(d2 - d1);
+        const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        dateDiffResult.textContent = currentLanguage === 'fr'
+          ? `Différence : ${diffDays} jours, ${diffHours} heures, ${diffMinutes} minutes.`
+          : `Difference: ${diffDays} days, ${diffHours} hours, ${diffMinutes} minutes.`;
+      } else {
+        dateDiffResult.textContent = currentLanguage === 'fr' ? "Dates invalides." : "Invalid dates.";
+      }
+    });
+    setReminderBtn.addEventListener('click', () => {
+      const minutes = parseInt(reminderMinutes.value);
+      if(!isNaN(minutes) && minutes > 0){
+        if(reminderTimeout) clearTimeout(reminderTimeout);
+        reminderTimeout = setTimeout(() => {
+          showModal(currentLanguage === 'fr' ? "Rappel : Le temps est écoulé !" : "Reminder: Time's up!");
+        }, minutes * 60000);
+        showModal(currentLanguage === 'fr' ? "Rappel défini !" : "Reminder set!");
+      } else {
+        showModal(currentLanguage === 'fr' ? "Veuillez entrer un nombre de minutes valide." : "Please enter a valid number of minutes.");
+      }
+    });
+    languageSelect.addEventListener('change', () => {
+      currentLanguage = languageSelect.value;
+      updateStartDateDisplay();
+      showModal(currentLanguage === 'fr' ? "Langue changée en Français." : "Language changed to English.");
+    });
+
+    /* ----- Modal ----- */
+    const modal = document.getElementById('modal');
+    const modalMessage = document.getElementById('modalMessage');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    function showModal(message) {
+      modalMessage.textContent = message;
+      modal.classList.add('active');
+    }
+    closeModalBtn.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+  </script>
+</body>
+</html>
